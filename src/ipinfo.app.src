@@ -1,0 +1,10 @@
+{application, ipinfo, [
+    {description,  "IPinfo API Client Library"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, inets, jiffy]},
+    {env,[]},
+    {modules, []},
+    {licenses, ["Apache 2.0"]},
+    {links, ["https://ipinfo.io", "https://github.com/ipinfo/erlang"]}
+]}.
