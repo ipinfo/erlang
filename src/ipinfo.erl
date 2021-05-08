@@ -7,22 +7,22 @@
 ]).
 
 -define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
+-define(DEFAULT_TIMEOUT, timer:seconds(5)).
 
 details() ->
     #{}.
 
 details(Ip) ->
     BaseUrl = application:get_env(ipinfo, base_url, ?DEFAULT_BASE_URL),
+    Timeout = application:get_env(ipinfo, timeout, ?DEFAULT_TIMEOUT),
     Url = <<BaseUrl/binary, "/", Ip/binary>>,
-    %% TODO: Detect app version programmatically
     ReqHeaders = [
-        {"User-Agent", "IPinfoClient/Erlang/0.1.0"},
+        {"User-Agent", user_agent()},
         {"Accept", "application/json"}
     ],
     Request = {Url, ReqHeaders},
-    %% TODO: Get timeout from config
     HTTPOptions = [
-        {timeout, timer:seconds(5)}
+        {timeout, Timeout}
     ],
     Options = [
         {body_format, binary}
@@ -38,3 +38,14 @@ details(Ip) ->
             ?LOG_ERROR("Error occured: ~p", [Reason]),
             {error, Reason}
     end.
+
+version() ->
+    case lists:keyfind(ipinfo, 1, application:which_applications()) of
+        {ipinfo, _, Version} ->
+            Version;
+        false ->
+            ""
+    end.
+
+user_agent() ->
+    "IPinfoClient/Erlang/" ++ version().

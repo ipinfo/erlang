@@ -1,6 +1,6 @@
 {application, ipinfo,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
+ [{description, "IPinfo Erlang Client Library"},
+  {vsn, git},
   {registered, []},
   {applications,
    [kernel,
