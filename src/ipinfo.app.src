@@ -2,6 +2,7 @@
  [{description, "IPinfo Erlang Client Library"},
   {vsn, git},
   {registered, []},
+  {mod, {ipinfo_app, []}},
   {applications,
    [kernel,
     stdlib,
