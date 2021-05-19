@@ -17,7 +17,7 @@ The free plan is limited to 50,000 requests per month, and doesn't include some 
 
 ## Installation
 
-Add this line to your application's rebar.config:
+Add this line to your application's `rebar.config`:
 
 ```erlang
 {deps, [ipinfo]}.
@@ -26,23 +26,72 @@ Add this line to your application's rebar.config:
 ## Usage
 
 ```erlang
-{ok, IpInfo} = ipinfo:create(<<"29a75d15">>),
-{ok, Details} = ipinfo:details(IpInfo),
-#{ip := Ip, city := City, loc := Loc} = Details,
-%% ...
+1> {ok, Ipinfo} = ipinfo:create("TOKEN").
+{ok,#{'__struct__' => ipinfo,access_token => <<"TOKEN">>,
+      base_url => <<"https://ipinfo.io">>,cache => <0.225.0>,
+      countries =>
+          #{<<"PF">> => <<"French Polynesia">>,
+            <<"CV">> => <<"Cape Verde">>,
+            <<"CG">> => <<"Republic of the Congo">>,
+            <<"KZ">> => <<"Kazakhstan">>,
+            <<"VI">> => <<"U.S. Virgin Islands">>,
+            <<"ML">> => <<"Mali">>,<<"AM">> => <<"Armenia">>,
+            <<"PN">> => <<"Pitcairn">>,<<"FR">> => <<"France">>,
+            <<"MK">> => <<"Macedonia">>,<<"NE">> => <<"Niger">>,
+            <<"ID">> => <<"Indonesia">>,<<"QA">> => <<"Qatar">>,
+            <<"LC">> => <<"Saint Lucia">>,<<"BR">> => <<"Brazil">>,
+            <<"DJ">> => <<"Djibouti">>,<<"NU">> => <<"Niue">>,
+            <<"BB">> => <<"Barbados">>,<<"NZ">> => <<"New Zealand">>,
+            <<"MF">> => <<"Saint Martin">>,
+            <<"AS">> => <<"American Samoa">>,<<"IL">> => <<"Israel">>,
+            <<"GH">> => <<"Ghana">>,<<"SL">> => <<"Sierra Leone">>,
+            <<"NI">> => <<"Nicaragua">>,<<"ZM">> => <<"Zambia">>,...},
+      timeout => 5000}}
+2> {ok, Details} = ipinfo:details(Ipinfo, <<"8.8.8.8">>).
+{ok,#{city => <<"Mountain View">>,country => <<"US">>,
+      country_name => <<"United States">>,
+      hostname => <<"dns.google">>,ip => <<"8.8.8.8">>,
+      latitude => <<"37.4056">>,loc => <<"37.4056,-122.0775">>,
+      longitude => <<"-122.0775">>,
+      org => <<"AS15169 Google LLC">>,
+      <<"abuse">> =>
+          #{address =>
+                <<"US, CA, Mountain View, 1600 Amphitheatre Parkway, 94043">>,
+            country => <<"US">>,email => <<"network-abuse@google.com">>,
+            name => <<"Abuse">>,<<"network">> => <<"8.8.8.0/24">>,
+            <<"phone">> => <<"+1-650-253-0000">>},
+      <<"anycast">> => true,
+      <<"asn">> =>
+          #{domain => <<"google.com">>,name => <<"Google LLC">>,
+            type => <<"business">>,<<"asn">> => <<"AS15169">>,
+            <<"route">> => <<"8.8.8.0/24">>},
+      <<"company">> =>
+          #{domain => <<"google.com">>,name => <<"Google LLC">>,
+            type => <<"business">>},
+      <<"domains">> =>
+          #{ip => <<"8.8.8.8">>,total => 12353,
+            <<"domains">> =>
+                [<<"41.cn">>,<<"itempurl.com">>,<<"ftempurl.com">>,
+                 <<"dns.google">>,<<"proxyie.cn">>]},
+      <<"postal">> => <<"94043">>,
+      <<"privacy">> =>
+          #{proxy => false,<<"hosting">> => false,<<"tor">> => false,
+            <<"vpn">> => false},
+      <<"region">> => <<"California">>,
+      <<"timezone">> => <<"America/Los_Angeles">>}}
 ```
 
 ### Details Data
 
 `ipinfo:details/1,2` will return a map that contains all fields
-listed in the [IPinfo developerdocs](https://ipinfo.io/developers/responses#full-response)
+listed in the [IPinfo developer documentation](https://ipinfo.io/developers/responses#full-response)
 with a few minor additions. Properties can be accessed directly.
 
 ### Configuration
 
 TBD
 
-## For elixir folks
+## Elixir Usage
 
 ```elixir
 alias :ipinfo, as: IPinfo
@@ -56,3 +105,13 @@ def current_ip() do
   end
 end
 ```
+
+## Other Libraries
+
+There are official [IPinfo client libraries](https://ipinfo.io/developers/libraries) available for many languages including PHP, Go, Java, Ruby, and many popular frameworks such as Django, Rails and Laravel. There are also many third party libraries and integrations available for our API.
+
+## About IPinfo
+
+Founded in 2013, IPinfo prides itself on being the most reliable, accurate, and in-depth source of IP address data available anywhere. We process terabytes of data to produce our custom IP geolocation, company, carrier, VPN detection, hosted domains, and IP type data sets. Our API handles over 20 billion requests a month for 100,000 businesses and developers.
+
+[![image](https://avatars3.githubusercontent.com/u/15721521?s=128&u=7bb7dde5c4991335fb234e68a30971944abc6bf3&v=4)](https://ipinfo.io/)
