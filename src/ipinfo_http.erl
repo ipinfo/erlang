@@ -10,7 +10,7 @@
 
 -spec request_details(ipinfo:t(), binary()) -> {ok, map()} | {error, term()}.
 request_details(#{access_token := AccessToken, base_url := BaseUrl, timeout := Timeout}, Ip) ->
-    Url = build_url(BaseUrl, Ip),
+    Url = binary_to_list(build_url(BaseUrl, Ip)),
     ReqHeaders = build_req_headers(AccessToken),
     Request = {Url, ReqHeaders},
     HTTPOptions = [
@@ -34,6 +34,7 @@ request_details(#{access_token := AccessToken, base_url := BaseUrl, timeout := T
             {error, Reason}
     end.
 
+-spec build_url(binary(), nil | undefined | binary()) -> binary().
 build_url(BaseUrl, Ip) when Ip =:= nil orelse Ip =:= undefined ->
     BaseUrl;
 build_url(BaseUrl, Ip) when is_binary(BaseUrl) andalso is_binary(Ip) ->
