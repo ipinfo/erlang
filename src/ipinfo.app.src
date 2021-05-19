@@ -1,6 +1,6 @@
 {application, ipinfo,
  [{description, "IPinfo Erlang Client Library"},
-  {vsn, git},
+  {vsn, "1.0.0"},
   {registered, []},
   {mod, {ipinfo_app, []}},
   {applications,
@@ -14,5 +14,5 @@
   {modules, []},
 
   {licenses, ["Apache 2.0"]},
-  {links, []}
+  {links, [{"GitHub", "https://github.com/ipinfo/erlang"}]}
  ]}.
