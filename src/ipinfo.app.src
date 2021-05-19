@@ -1,5 +1,5 @@
 {application, ipinfo,
- [{description, "IPinfo Erlang Client Library"},
+ [{description, "The official IPinfo Erlang Client Library"},
   {vsn, "1.0.0"},
   {registered, []},
   {mod, {ipinfo_app, []}},
