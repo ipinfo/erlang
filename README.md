@@ -1,5 +1,9 @@
 # [<img src="https://ipinfo.io/static/ipinfo-small.svg" alt="IPinfo" width="24"/>](https://ipinfo.io/) IPinfo Erlang Client Library
 
+[![Hex.pm Version](https://img.shields.io/hexpm/v/ipinfo.svg)](https://hex.pm/packages/ipinfo)
+
+[![Build Status](https://github.com/ipinfo/erlang/workflows/CI/badge.svg)](https://github.com/ipinfo/erlang/actions)
+
 This is the official Erlang/Elixir client library for the [IPinfo.io](https://ipinfo.io) IP data API, allowing you to lookup your own IP address, or get any of the following details for an IP:
 
 - [IP geolocation data](https://ipinfo.io/ip-geolocation-api) (city, region, country, postal code, latitude and longitude)
