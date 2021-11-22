@@ -80,7 +80,7 @@ Add this line to your application's `rebar.config`:
       <<"postal">> => <<"94043">>,
       <<"privacy">> =>
           #{proxy => false,<<"hosting">> => false,<<"tor">> => false,
-            <<"vpn">> => false,<<"relay">> => false},
+            <<"vpn">> => false,<<"relay">> => false,<<"service">> => <<"">>},
       <<"region">> => <<"California">>,
       <<"timezone">> => <<"America/Los_Angeles">>}}
 ```
