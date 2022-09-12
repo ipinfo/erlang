@@ -32,7 +32,7 @@ Add this line to your application's `rebar.config`:
 ```erlang
 1> {ok, Ipinfo} = ipinfo:create("TOKEN").
 {ok,#{'__struct__' => ipinfo,access_token => <<"TOKEN">>,
-      base_url => <<"https://ipinfo.io">>,cache => <0.225.0>,
+      base_url => <<"https://ipinfo.io">>,cache => <0.197.0>,
       countries =>
           #{<<"PF">> => <<"French Polynesia">>,
             <<"CV">> => <<"Cape Verde">>,
@@ -50,13 +50,19 @@ Add this line to your application's `rebar.config`:
             <<"AS">> => <<"American Samoa">>,<<"IL">> => <<"Israel">>,
             <<"GH">> => <<"Ghana">>,<<"SL">> => <<"Sierra Leone">>,
             <<"NI">> => <<"Nicaragua">>,<<"ZM">> => <<"Zambia">>,...},
+      eu_countries =>
+          [<<"IE">>,<<"AT">>,<<"LT">>,<<"LU">>,<<"LV">>,<<"DE">>,
+           <<"DK">>,<<"SE">>,<<"SI">>,<<"SK">>,<<"CZ">>,<<"CY">>,
+           <<"NL">>,<<"FI">>,<<"FR">>,<<"MT">>,<<"ES">>,<<"IT">>,
+           <<"EE">>,<<"PL">>,<<"PT">>,<<"HU">>,<<"HR">>,<<"GR">>,
+           <<"RO">>,<<...>>|...],
       timeout => 5000}}
 2> {ok, Details} = ipinfo:details(Ipinfo, <<"8.8.8.8">>).
 {ok,#{city => <<"Mountain View">>,country => <<"US">>,
       country_name => <<"United States">>,
       hostname => <<"dns.google">>,ip => <<"8.8.8.8">>,
-      latitude => <<"37.4056">>,loc => <<"37.4056,-122.0775">>,
-      longitude => <<"-122.0775">>,
+      is_eu => false,latitude => <<"37.4056">>,
+      loc => <<"37.4056,-122.0775">>,longitude => <<"-122.0775">>,
       org => <<"AS15169 Google LLC">>,
       <<"abuse">> =>
           #{address =>
@@ -67,20 +73,20 @@ Add this line to your application's `rebar.config`:
       <<"anycast">> => true,
       <<"asn">> =>
           #{domain => <<"google.com">>,name => <<"Google LLC">>,
-            type => <<"business">>,<<"asn">> => <<"AS15169">>,
+            type => <<"hosting">>,<<"asn">> => <<"AS15169">>,
             <<"route">> => <<"8.8.8.0/24">>},
       <<"company">> =>
           #{domain => <<"google.com">>,name => <<"Google LLC">>,
-            type => <<"business">>},
+            type => <<"hosting">>},
       <<"domains">> =>
-          #{ip => <<"8.8.8.8">>,total => 12353,
+          #{ip => <<"8.8.8.8">>,total => 13883,
             <<"domains">> =>
-                [<<"41.cn">>,<<"itempurl.com">>,<<"ftempurl.com">>,
-                 <<"dns.google">>,<<"proxyie.cn">>]},
+                [<<"chaoxz.com">>,<<"chenyu.love">>,<<"authrock.com">>,
+                 <<"bits-hyderabad.ac.in">>,<<"asianonnidrama.com">>]},
       <<"postal">> => <<"94043">>,
       <<"privacy">> =>
-          #{proxy => false,<<"hosting">> => false,<<"tor">> => false,
-            <<"vpn">> => false,<<"relay">> => false,<<"service">> => <<"">>},
+          #{proxy => false,relay => false,service => <<>>,
+            <<"hosting">> => true,<<"tor">> => false,<<"vpn">> => false},
       <<"region">> => <<"California">>,
       <<"timezone">> => <<"America/Los_Angeles">>}}
 ```
