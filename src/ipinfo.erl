@@ -42,7 +42,7 @@ new() ->
         timeout      => nil,
         cache        => nil,
         countries    => #{},
-        eu_countries => #{}
+        eu_countries => []
     }.
 
 -spec '__struct__'() -> t().
@@ -130,9 +130,7 @@ put_is_eu(#{country := Country} = Details, EuCountries) ->
         true ->
             maps:put(is_eu, true, Details);
         false ->
-            maps:put(is_eu, false, Details);
-        error ->
-            Details
+            maps:put(is_eu, false, Details)
     end;
 put_is_eu(Details, _EuCountries) ->
     Details.
