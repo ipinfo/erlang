@@ -82,10 +82,15 @@ create(AccessToken, Settings) ->
     BaseUrl = get_config(base_url, Settings, ?DEFAULT_BASE_URL),
     Timeout = get_config(timeout, Settings, ?DEFAULT_TIMEOUT),
     CacheTtl = get_config(cache_ttl, Settings, ?DEFAULT_CACHE_TTL_SECONDS),
+    EuCountries = case prepare_countries(EuCountriesFile) of 
+        {ok, EuCountriesOutput} ->
+            EuCountriesOutput;
+        {error, ErrorReason} ->
+            {error, ErrorReason}
+    end,
     case prepare_countries(CountriesFile) of
         {ok, Countries} ->
             {ok, Cache} = ipinfo_cache:create(CacheTtl),
-            {ok, EuCountries} = prepare_countries(EuCountriesFile),
             {ok, new(#{
                 access_token => AccessToken,
                 base_url     => BaseUrl,
