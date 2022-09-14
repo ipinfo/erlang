@@ -15,6 +15,7 @@
 ]).
 
 -define(DEFAULT_COUNTRY_FILE, "countries.json").
+-define(DEFAULT_EU_COUNTRY_FILE, "eu.json").
 -define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
 -define(DEFAULT_TIMEOUT, timer:seconds(5)).
 -define(DEFAULT_CACHE_TTL_SECONDS, (24 * 60 * 60)).
@@ -27,7 +28,8 @@
     base_url     := nil | binary(),
     timeout      := nil | timeout(),
     cache        := nil | pid(),
-    countries    := map()
+    countries    := map(),
+    eu_countries := list()
 }.
 
 -spec new() -> t().
@@ -39,7 +41,8 @@ new() ->
         base_url     => nil,
         timeout      => nil,
         cache        => nil,
-        countries    => #{}
+        countries    => #{},
+        eu_countries => []
     }.
 
 -spec '__struct__'() -> t().
@@ -74,19 +77,27 @@ create(AccessToken) ->
 create(AccessToken, Settings) ->
     CountriesFile = get_config(countries, Settings,
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_FILE)),
+    EuCountriesFile = get_config(eu_countries, Settings,
+        filename:join(code:priv_dir(ipinfo), ?DEFAULT_EU_COUNTRY_FILE)),
     BaseUrl = get_config(base_url, Settings, ?DEFAULT_BASE_URL),
     Timeout = get_config(timeout, Settings, ?DEFAULT_TIMEOUT),
     CacheTtl = get_config(cache_ttl, Settings, ?DEFAULT_CACHE_TTL_SECONDS),
     case prepare_countries(CountriesFile) of
         {ok, Countries} ->
-            {ok, Cache} = ipinfo_cache:create(CacheTtl),
-            {ok, new(#{
-                access_token => AccessToken,
-                base_url     => BaseUrl,
-                timeout      => Timeout,
-                cache        => Cache,
-                countries    => Countries
-            })};
+            case prepare_countries(EuCountriesFile) of
+                {ok, EuCountries} ->
+                    {ok, Cache} = ipinfo_cache:create(CacheTtl),
+                    {ok, new(#{
+                        access_token => AccessToken,
+                        base_url     => BaseUrl,
+                        timeout      => Timeout,
+                        cache        => Cache,
+                        countries    => Countries,
+                        eu_countries => EuCountries
+                    })};
+                {error, Error} ->
+                    {error, Error}
+            end;
         {error, Reason} ->
             {error, Reason}
     end.
@@ -94,15 +105,15 @@ create(AccessToken, Settings) ->
 details(IpInfo) ->
     details(IpInfo, nil).
 
-details(#{cache := Cache, countries := Countries} = IpInfo, IpAddress) ->
+details(#{cache := Cache, countries := Countries, eu_countries := EuCountries} = IpInfo, IpAddress) ->
     case ipinfo_cache:get(Cache, IpAddress) of
         {ok, Details} ->
-            {ok, put_geo(put_country_name(Details, Countries))};
+            {ok, put_geo(put_country_name(put_is_eu(Details, EuCountries), Countries))};
         error ->
             case ipinfo_http:request_details(IpInfo, IpAddress) of
                 {ok, Details} ->
                     ok = ipinfo_cache:add(Cache, IpAddress, Details),
-                    {ok, put_geo(put_country_name(Details, Countries))};
+                    {ok, put_geo(put_country_name(put_is_eu(Details, EuCountries), Countries))};
                 {error, Reason} ->
                     {error, Reason}
             end
@@ -116,6 +127,16 @@ put_country_name(#{country := Country} = Details, Countries) ->
             Details
     end;
 put_country_name(Details, _Countries) ->
+    Details.
+
+put_is_eu(#{country := Country} = Details, EuCountries) ->
+    case lists:member(Country, EuCountries) of
+        true ->
+            maps:put(is_eu, true, Details);
+        false ->
+            maps:put(is_eu, false, Details)
+    end;
+put_is_eu(Details, _EuCountries) ->
     Details.
 
 put_geo(#{loc := Loc} = Details) ->
