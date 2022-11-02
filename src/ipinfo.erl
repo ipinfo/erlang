@@ -16,6 +16,7 @@
 
 -define(DEFAULT_COUNTRY_FILE, "countries.json").
 -define(DEFAULT_EU_COUNTRY_FILE, "eu.json").
+-define(DEFAULT_COUNTRY_FLAG_FILE, "flags.json").
 -define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
 -define(DEFAULT_TIMEOUT, timer:seconds(5)).
 -define(DEFAULT_CACHE_TTL_SECONDS, (24 * 60 * 60)).
@@ -23,26 +24,28 @@
 -export_type([t/0]).
 
 -type t() :: #{
-    '__struct__' := ?MODULE,
-    access_token := nil | binary(),
-    base_url     := nil | binary(),
-    timeout      := nil | timeout(),
-    cache        := nil | pid(),
-    countries    := map(),
-    eu_countries := list()
+    '__struct__'    := ?MODULE,
+    access_token    := nil | binary(),
+    base_url        := nil | binary(),
+    timeout         := nil | timeout(),
+    cache           := nil | pid(),
+    countries       := map(),
+    countries_flags := map(),
+    eu_countries    := list()
 }.
 
 -spec new() -> t().
 %% @private
 new() ->
     #{
-        '__struct__' => ?MODULE,
-        access_token => nil,
-        base_url     => nil,
-        timeout      => nil,
-        cache        => nil,
-        countries    => #{},
-        eu_countries => []
+        '__struct__'    => ?MODULE,
+        access_token    => nil,
+        base_url        => nil,
+        timeout         => nil,
+        cache           => nil,
+        countries       => #{},
+        countries_flags => #{},
+        eu_countries    => []
     }.
 
 -spec '__struct__'() -> t().
@@ -79,24 +82,32 @@ create(AccessToken, Settings) ->
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_FILE)),
     EuCountriesFile = get_config(eu_countries, Settings,
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_EU_COUNTRY_FILE)),
+    CountriesFlagsFile = get_config(countries_flags, Settings,
+        filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_FLAG_FILE)),
     BaseUrl = get_config(base_url, Settings, ?DEFAULT_BASE_URL),
     Timeout = get_config(timeout, Settings, ?DEFAULT_TIMEOUT),
     CacheTtl = get_config(cache_ttl, Settings, ?DEFAULT_CACHE_TTL_SECONDS),
-    case prepare_countries(CountriesFile) of
+    case read_json(CountriesFile) of
         {ok, Countries} ->
-            case prepare_countries(EuCountriesFile) of
+            case read_json(EuCountriesFile) of
                 {ok, EuCountries} ->
-                    {ok, Cache} = ipinfo_cache:create(CacheTtl),
-                    {ok, new(#{
-                        access_token => AccessToken,
-                        base_url     => BaseUrl,
-                        timeout      => Timeout,
-                        cache        => Cache,
-                        countries    => Countries,
-                        eu_countries => EuCountries
-                    })};
+                    case read_json(CountriesFlagsFile) of 
+                        {ok, CountriesFlags} ->        
+                            {ok, Cache} = ipinfo_cache:create(CacheTtl),
+                            {ok, new(#{
+                                access_token    => AccessToken,
+                                base_url        => BaseUrl,
+                                timeout         => Timeout,
+                                cache           => Cache,
+                                countries       => Countries,
+                                eu_countries    => EuCountries,
+                                countries_flags => CountriesFlags
+                            })};
+                        {error, Error} ->
+                            {error, Error}
+                    end;
                 {error, Error} ->
-                    {error, Error}
+                        {error, Error}
             end;
         {error, Reason} ->
             {error, Reason}
@@ -105,15 +116,15 @@ create(AccessToken, Settings) ->
 details(IpInfo) ->
     details(IpInfo, nil).
 
-details(#{cache := Cache, countries := Countries, eu_countries := EuCountries} = IpInfo, IpAddress) ->
+details(#{cache := Cache, countries := Countries, eu_countries := EuCountries, countries_flags := CountriesFlags} = IpInfo, IpAddress) ->
     case ipinfo_cache:get(Cache, IpAddress) of
         {ok, Details} ->
-            {ok, put_geo(put_country_name(put_is_eu(Details, EuCountries), Countries))};
+            {ok, put_geo(put_country_name(put_is_eu(put_country_flag(Details, CountriesFlags), EuCountries), Countries))};
         error ->
             case ipinfo_http:request_details(IpInfo, IpAddress) of
                 {ok, Details} ->
                     ok = ipinfo_cache:add(Cache, IpAddress, Details),
-                    {ok, put_geo(put_country_name(put_is_eu(Details, EuCountries), Countries))};
+                    {ok, put_geo(put_country_name(put_is_eu(put_country_flag(Details, CountriesFlags), EuCountries), Countries))};
                 {error, Reason} ->
                     {error, Reason}
             end
@@ -127,6 +138,16 @@ put_country_name(#{country := Country} = Details, Countries) ->
             Details
     end;
 put_country_name(Details, _Countries) ->
+    Details.
+
+put_country_flag(#{country := Country} = Details, CountriesFlags) ->
+    case maps:find(Country, CountriesFlags) of
+        {ok, CountryFlag} ->
+            maps:put(country_flag, CountryFlag, Details);
+        error ->
+            Details
+    end;
+put_country_flag(Details, _CountriesFlags) ->
     Details.
 
 put_is_eu(#{country := Country} = Details, EuCountries) ->
@@ -151,8 +172,8 @@ put_geo(Details) ->
 get_config(Key, Settings, Default) ->
     proplists:get_value(Key, Settings, application:get_env(ipinfo, Key, Default)).
 
-prepare_countries(CountriesFile) ->
-    case file:read_file(CountriesFile) of
+read_json(JsonFile) ->
+    case file:read_file(JsonFile) of
         {ok, Binary} ->
             case jsx:is_json(Binary) of
                 true ->
