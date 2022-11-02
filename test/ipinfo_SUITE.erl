@@ -43,7 +43,13 @@ details_test(_Config) ->
     {ok, #{
         country_name := <<"Russia">>,
         latitude     := <<"55.9116">>,
-        longitude    := <<"37.7308">>
+        longitude    := <<"37.7308">>,
+        is_eu        := false,
+        country_flag := #{
+            <<"emoji">>   := <<240,159,135,183,240,159,135,186>>,
+            <<"unicode">> := <<"U+1F1F7 U+1F1FA">>
+        }
+
     }} = ipinfo:details(IpInfo, <<"176.106.253.152">>),
     {ok, Request} = bookish_spork:capture_request(),
     ?assertEqual(<<"/176.106.253.152">>, bookish_spork_request:uri(Request)),
