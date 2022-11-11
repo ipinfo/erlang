@@ -50,6 +50,61 @@ Add this line to your application's `rebar.config`:
             <<"AS">> => <<"American Samoa">>,<<"IL">> => <<"Israel">>,
             <<"GH">> => <<"Ghana">>,<<"SL">> => <<"Sierra Leone">>,
             <<"NI">> => <<"Nicaragua">>,<<"ZM">> => <<"Zambia">>,...},
+      countries_currencies =>
+          #{<<"PF">> =>
+                #{<<"code">> => <<"XPF">>,<<"symbol">> => <<226,130,163>>},
+            <<"CV">> =>
+                #{<<"code">> => <<"CVE">>,<<"symbol">> => <<"$">>},
+            <<"CG">> =>
+                #{<<"code">> => <<"XAF">>,<<"symbol">> => <<"FCFA">>},
+            <<"KZ">> =>
+                #{<<"code">> => <<"KZT">>,<<"symbol">> => <<226,130,184>>},
+            <<"VI">> =>
+                #{<<"code">> => <<"USD">>,<<"symbol">> => <<"$">>},
+            <<"ML">> =>
+                #{<<"code">> => <<"XOF">>,<<"symbol">> => <<"CFA">>},
+            <<"AM">> =>
+                #{<<"code">> => <<"AMD">>,<<"symbol">> => <<214,143>>},
+            <<"PN">> =>
+                #{<<"code">> => <<"NZD">>,<<"symbol">> => <<"$">>},
+            <<"FR">> =>
+                #{<<"code">> => <<"EUR">>,<<"symbol">> => <<226,130,172>>},
+            <<"MK">> =>
+                #{<<"code">> => <<"MKD">>,
+                  <<"symbol">> => <<208,180,208,181,208,189>>},
+            <<"NE">> =>
+                #{<<"code">> => <<"XOF">>,<<"symbol">> => <<"CFA">>},
+            <<"ID">> =>
+                #{<<"code">> => <<"IDR">>,<<"symbol">> => <<"Rp">>},
+            <<"QA">> =>
+                #{<<"code">> => <<"QAR">>,<<"symbol">> => <<239,183,188>>},
+            <<"LC">> =>
+                #{<<"code">> => <<"XCD">>,<<"symbol">> => <<"$">>},
+            <<"BR">> =>
+                #{<<"code">> => <<"BRL">>,<<"symbol">> => <<"R$">>},
+            <<"DJ">> =>
+                #{<<"code">> => <<"DJF">>,<<"symbol">> => <<"Fdj">>},
+            <<"NU">> =>
+                #{<<"code">> => <<"NZD">>,<<"symbol">> => <<"$">>},
+            <<"BB">> =>
+                #{<<"code">> => <<"BBD">>,<<"symbol">> => <<"$">>},
+            <<"NZ">> =>
+                #{<<"code">> => <<"NZD">>,<<"symbol">> => <<"$">>},
+            <<"MF">> =>
+                #{<<"code">> => <<"EUR">>,<<"symbol">> => <<226,130,172>>},
+            <<"AS">> =>
+                #{<<"code">> => <<"USD">>,<<"symbol">> => <<"$">>},
+            <<"IL">> =>
+                #{<<"code">> => <<"ILS">>,<<"symbol">> => <<226,130,170>>},
+            <<"GH">> =>
+                #{<<"code">> => <<"GHS">>,
+                  <<"symbol">> => <<71,72,226,130,181>>},
+            <<"SL">> =>
+                #{<<"code">> => <<"SLL">>,<<"symbol">> => <<"Le">>},
+            <<"NI">> =>
+                #{<<"code">> => <<"NIO">>,<<"symbol">> => <<"C$">>},
+            <<"ZM">> =>
+                #{<<"code">> => <<"ZMK">>,<<"symbol">> => <<"ZK">>},...},
       countries_flags =>
           #{<<"PF">> =>
                 #{<<"emoji">> => <<240,159,135,181,240,159,135,171>>,
@@ -78,7 +133,7 @@ Add this line to your application's `rebar.config`:
             <<"FR">> =>
                 #{<<"emoji">> => <<240,159,135,171,240,159,135,183>>,
                   <<"unicode">> => <<"U+1F1EB U+1F1F7">>},
-            <<"MK">> => 
+            <<"MK">> =>
                 #{<<"emoji">> => <<240,159,135,178,240,159,135,176>>,
                   <<"unicode">> => <<"U+1F1F2 U+1F1F0">>},
             <<"NE">> =>
@@ -117,7 +172,7 @@ Add this line to your application's `rebar.config`:
             <<"IL">> =>
                 #{<<"emoji">> => <<240,159,135,174,240,159,135,177>>,
                   <<"unicode">> => <<"U+1F1EE U+1F1F1">>},
-            <<"GH">> => 
+            <<"GH">> =>
                 #{<<"emoji">> => <<240,159,135,172,240,159,135,173>>,
                   <<"unicode">> => <<"U+1F1EC U+1F1ED">>},
             <<"SL">> =>
@@ -138,6 +193,8 @@ Add this line to your application's `rebar.config`:
       timeout => 5000}}
 2> {ok, Details} = ipinfo:details(Ipinfo, <<"8.8.8.8">>).
 {ok,#{city => <<"Mountain View">>,country => <<"US">>,
+      country_currency =>
+          #{<<"code">> => <<"USD">>,<<"symbol">> => <<"$">>},
       country_flag =>
           #{<<"emoji">> => <<240,159,135,186,240,159,135,184>>,
             <<"unicode">> => <<"U+1F1FA U+1F1F8">>},

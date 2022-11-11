@@ -48,6 +48,10 @@ details_test(_Config) ->
         country_flag := #{
             <<"emoji">>   := <<240,159,135,183,240,159,135,186>>,
             <<"unicode">> := <<"U+1F1F7 U+1F1FA">>
+        },
+        country_currency := #{
+            <<"code">>   := <<"RUB">>,
+            <<"symbol">> := <<226,130,189>>
         }
 
     }} = ipinfo:details(IpInfo, <<"176.106.253.152">>),
