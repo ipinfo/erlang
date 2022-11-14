@@ -18,6 +18,7 @@
 -define(DEFAULT_EU_COUNTRY_FILE, "eu.json").
 -define(DEFAULT_COUNTRY_FLAG_FILE, "flags.json").
 -define(DEFAULT_COUNTRY_CURRENCY_FILE, "currency.json").
+-define(DEFAULT_CONTINENT_FILE, "continent.json").
 -define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
 -define(DEFAULT_TIMEOUT, timer:seconds(5)).
 -define(DEFAULT_CACHE_TTL_SECONDS, (24 * 60 * 60)).
@@ -33,6 +34,7 @@
     countries            := map(),
     countries_flags      := map(),
     countries_currencies := map(),
+    continents           := map(),
     eu_countries         := list()
 }.
 
@@ -48,6 +50,7 @@ new() ->
         countries            => #{},
         countries_currencies => #{},
         countries_flags      => #{},
+        continents           => #{},
         eu_countries         => []
     }.
 
@@ -89,6 +92,8 @@ create(AccessToken, Settings) ->
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_FLAG_FILE)),
     CountriesCurrenciesFile = get_config(countries_currencies, Settings,
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_CURRENCY_FILE)),
+    ContinentsFile = get_config(continents, Settings,
+        filename:join(code:priv_dir(ipinfo), ?DEFAULT_CONTINENT_FILE)),
     BaseUrl = get_config(base_url, Settings, ?DEFAULT_BASE_URL),
     Timeout = get_config(timeout, Settings, ?DEFAULT_TIMEOUT),
     CacheTtl = get_config(cache_ttl, Settings, ?DEFAULT_CACHE_TTL_SECONDS),
@@ -99,21 +104,27 @@ create(AccessToken, Settings) ->
                     case read_json(CountriesFlagsFile) of 
                         {ok, CountriesFlags} ->
                             case read_json(CountriesCurrenciesFile) of
-                            {ok, CountriesCurrencies} ->
-                                {ok, Cache} = ipinfo_cache:create(CacheTtl),
-                                {ok, new(#{
-                                    access_token         => AccessToken,
-                                    base_url             => BaseUrl,
-                                    timeout              => Timeout,
-                                    cache                => Cache,
-                                    countries            => Countries,
-                                    eu_countries         => EuCountries,
-                                    countries_flags      => CountriesFlags,
-                                    countries_currencies => CountriesCurrencies
-                                })};
-                            {error, Error} ->
-                                {error, Error}
-                            end;
+                                {ok, CountriesCurrencies} ->
+                                    case read_json(ContinentsFile) of 
+                                        {ok, Continents} ->
+                                            {ok, Cache} = ipinfo_cache:create(CacheTtl),
+                                            {ok, new(#{
+                                                access_token         => AccessToken,
+                                                base_url             => BaseUrl,
+                                                timeout              => Timeout,
+                                                cache                => Cache,
+                                                countries            => Countries,
+                                                eu_countries         => EuCountries,
+                                                countries_flags      => CountriesFlags,
+                                                countries_currencies => CountriesCurrencies,
+                                                continents           => Continents
+                                            })};
+                                        {error, Error} ->
+                                            {error, Error}
+                                        end;
+                                {error, Error} ->
+                                    {error, Error}
+                                end;
                         {error, Error} ->
                             {error, Error}
                     end;
@@ -131,16 +142,17 @@ details(#{cache := Cache,
     countries := Countries, 
     eu_countries := EuCountries, 
     countries_flags := CountriesFlags, 
-    countries_currencies := CountriesCurrencies
+    countries_currencies := CountriesCurrencies,
+    continents := Continents
 } = IpInfo, IpAddress) ->
     case ipinfo_cache:get(Cache, IpAddress) of
         {ok, Details} ->
-            {ok, put_geo(put_country_name(put_is_eu(put_country_flag(put_country_currency(Details,CountriesCurrencies), CountriesFlags), EuCountries), Countries))};
+            {ok, put_geo(put_country_name(put_is_eu(put_country_flag(put_country_currency(put_continent(Details, Continents),CountriesCurrencies), CountriesFlags), EuCountries), Countries))};
         error ->
             case ipinfo_http:request_details(IpInfo, IpAddress) of
                 {ok, Details} ->
                     ok = ipinfo_cache:add(Cache, IpAddress, Details),
-                    {ok, put_geo(put_country_name(put_is_eu(put_country_flag(put_country_currency(Details,CountriesCurrencies), CountriesFlags), EuCountries), Countries))};
+                    {ok, put_geo(put_country_name(put_is_eu(put_country_flag(put_country_currency(put_continent(Details, Continents),CountriesCurrencies), CountriesFlags), EuCountries), Countries))};
                 {error, Reason} ->
                     {error, Reason}
             end
@@ -174,6 +186,16 @@ put_country_currency(#{country := Country} = Details, CountriesCurrencies) ->
             Details
     end;
 put_country_currency(Details, _CountriesCurrencies) ->
+    Details.
+
+put_continent(#{country := Country} = Details, Continents) ->
+    case maps:find(Country, Continents) of
+        {ok, Continent} ->
+            maps:put(continent, Continent, Details);
+        error ->
+            Details
+    end;
+put_continent(Details, _Continents) ->
     Details.
 
 put_is_eu(#{country := Country} = Details, EuCountries) ->
