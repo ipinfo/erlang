@@ -52,6 +52,10 @@ details_test(_Config) ->
         country_currency := #{
             <<"code">>   := <<"RUB">>,
             <<"symbol">> := <<226,130,189>>
+        },
+        continent := #{
+            <<"code">> := <<"EU">>,
+            <<"name">> := <<"Europe">>
         }
 
     }} = ipinfo:details(IpInfo, <<"176.106.253.152">>),

@@ -33,6 +33,59 @@ Add this line to your application's `rebar.config`:
 1> {ok, Ipinfo} = ipinfo:create("TOKEN").
 {ok,#{'__struct__' => ipinfo,access_token => <<"TOKEN">>,
       base_url => <<"https://ipinfo.io">>,cache => <0.197.0>,
+      continents =>
+          #{<<"PF">> =>
+                #{<<"code">> => <<"OC">>,<<"name">> => <<"Oceania">>},
+            <<"CV">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"CG">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"KZ">> =>
+                #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
+            <<"VI">> =>
+                #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
+            <<"ML">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"AM">> =>
+                #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
+            <<"PN">> =>
+                #{<<"code">> => <<"OC">>,<<"name">> => <<"Oceania">>},
+            <<"FR">> =>
+                #{<<"code">> => <<"EU">>,<<"name">> => <<"Europe">>},
+            <<"MK">> =>
+                #{<<"code">> => <<"EU">>,<<"name">> => <<"Europe">>},
+            <<"NE">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"ID">> =>
+                #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
+            <<"QA">> => 
+                #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
+            <<"LC">> =>
+                #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
+            <<"BR">> =>
+                #{<<"code">> => <<"SA">>,<<"name">> => <<"South America">>},
+            <<"DJ">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"NU">> =>
+                #{<<"code">> => <<"OC">>,<<"name">> => <<"Oceania">>},
+            <<"BB">> =>
+                #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
+            <<"NZ">> =>
+                #{<<"code">> => <<"OC">>,<<"name">> => <<"Oceania">>},
+            <<"MF">> =>
+                #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
+            <<"AS">> =>
+                #{<<"code">> => <<"OC">>,<<"name">> => <<"Oceania">>},
+            <<"IL">> =>
+                #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
+            <<"GH">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"SL">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
+            <<"NI">> =>
+                #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
+            <<"ZM">> =>
+                #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},...},
       countries =>
           #{<<"PF">> => <<"French Polynesia">>,
             <<"CV">> => <<"Cape Verde">>,
@@ -111,7 +164,7 @@ Add this line to your application's `rebar.config`:
                   <<"unicode">> => <<"U+1F1F5 U+1F1EB">>},
             <<"CV">> =>
                 #{<<"emoji">> => <<240,159,135,168,240,159,135,187>>,
-                  <<"unicode">> => <<"U+1F1E8 U+1F1FB">>},
+                  <<"unicode">> => <<"U+1F1E8 U+1F1FB">>}, 
             <<"CG">> =>
                 #{<<"emoji">> => <<240,159,135,168,240,159,135,172>>,
                   <<"unicode">> => <<"U+1F1E8 U+1F1EC">>},
