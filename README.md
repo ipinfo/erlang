@@ -237,6 +237,8 @@ Add this line to your application's `rebar.config`:
             <<"ZM">> =>
                 #{<<"emoji">> => <<240,159,135,191,240,159,135,178>>,
                   <<"unicode">> => <<"U+1F1FF U+1F1F2">>},...},
+      country_flag_base_url =>
+          <<"https://cdn.ipinfo.io/static/images/countries-flags/">>, 
       eu_countries =>
           [<<"IE">>,<<"AT">>,<<"LT">>,<<"LU">>,<<"LV">>,<<"DE">>,
            <<"DK">>,<<"SE">>,<<"SI">>,<<"SK">>,<<"CZ">>,<<"CY">>,
@@ -251,6 +253,8 @@ Add this line to your application's `rebar.config`:
       country_flag =>
           #{<<"emoji">> => <<240,159,135,186,240,159,135,184>>,
             <<"unicode">> => <<"U+1F1FA U+1F1F8">>},
+      country_flag_url =>
+          <<"https:/cdn.ipinfo.io/static/images/countries-flags/US.svg">>,
       country_name => <<"United States">>,
       hostname => <<"dns.google">>,ip => <<"8.8.8.8">>,
       is_eu => false,latitude => <<"37.4056">>,
