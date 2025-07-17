@@ -8,12 +8,14 @@ jobs:
     strategy:
       matrix:
         otp:
-          - "21.3"
-          - "22.0.7"
-          - "22.3"
-          - "23.0.4"
-          - "23.2.7.0"
-          - "24.0"
+          - "21"
+          - "22"
+          - "23"
+          - "24"
+          - "25"
+          - "26"
+          - "27"
+          - "28"
 
     container:
       image: erlang:${{ matrix.otp }}-alpine
@@ -26,9 +28,13 @@ jobs:
         run: rebar3 compile
 
       - name: Linting
+        # Linting works only with latest version
+        if: ${{ matrix.otp == '28' }}
         run: rebar3 lint
 
       - name: Tests
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
         run: |
           rebar3 xref
           rebar3 dialyzer
