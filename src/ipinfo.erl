@@ -19,7 +19,8 @@
 -define(DEFAULT_COUNTRY_FLAG_FILE, "flags.json").
 -define(DEFAULT_COUNTRY_CURRENCY_FILE, "currency.json").
 -define(DEFAULT_CONTINENT_FILE, "continent.json").
--define(DEFAULT_COUNTRY_FLAG_BASE_URL, <<"https://cdn.ipinfo.io/static/images/countries-flags/">>).
+-define(DEFAULT_COUNTRY_FLAG_BASE_URL,
+    <<"https://cdn.ipinfo.io/static/images/countries-flags/">>).
 -define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
 -define(DEFAULT_TIMEOUT, timer:seconds(5)).
 -define(DEFAULT_CACHE_TTL_SECONDS, (24 * 60 * 60)).
@@ -97,48 +98,72 @@ create(AccessToken, Settings) ->
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_COUNTRY_CURRENCY_FILE)),
     ContinentsFile = get_config(continents, Settings,
         filename:join(code:priv_dir(ipinfo), ?DEFAULT_CONTINENT_FILE)),
-    CountryFlagBaseUrl = get_config(country_flag_base_url, Settings, ?DEFAULT_COUNTRY_FLAG_BASE_URL),
+    CountryFlagBaseUrl = get_config(country_flag_base_url, Settings,
+        ?DEFAULT_COUNTRY_FLAG_BASE_URL),
     BaseUrl = get_config(base_url, Settings, ?DEFAULT_BASE_URL),
     Timeout = get_config(timeout, Settings, ?DEFAULT_TIMEOUT),
     CacheTtl = get_config(cache_ttl, Settings, ?DEFAULT_CACHE_TTL_SECONDS),
-    case read_json(CountriesFile) of
-        {ok, Countries} ->
-            case read_json(EuCountriesFile) of
-                {ok, EuCountries} ->
-                    case read_json(CountriesFlagsFile) of 
-                        {ok, CountriesFlags} ->
-                            case read_json(CountriesCurrenciesFile) of
-                                {ok, CountriesCurrencies} ->
-                                    case read_json(ContinentsFile) of 
-                                        {ok, Continents} ->
-                                            {ok, Cache} = ipinfo_cache:create(CacheTtl),
-                                            {ok, new(#{
-                                                access_token          => AccessToken,
-                                                base_url              => BaseUrl,
-                                                timeout               => Timeout,
-                                                cache                 => Cache,
-                                                countries             => Countries,
-                                                eu_countries          => EuCountries,
-                                                countries_flags       => CountriesFlags,
-                                                country_flag_base_url => CountryFlagBaseUrl,
-                                                countries_currencies  => CountriesCurrencies,
-                                                continents            => Continents
-                                            })};
-                                        {error, Error} ->
-                                            {error, Error}
-                                    end;
-                                {error, Error} ->
-                                    {error, Error}
-                            end;
-                        {error, Error} ->
-                            {error, Error}
-                    end;
-                {error, Error} ->
-                    {error, Error}
-            end;
+    create_with_files(AccessToken, BaseUrl, Timeout, CacheTtl, CountriesFile,
+        EuCountriesFile, CountriesFlagsFile, CountriesCurrenciesFile,
+        ContinentsFile, CountryFlagBaseUrl).
+
+create_with_files(AccessToken, BaseUrl, Timeout, CacheTtl, CountriesFile,
+    EuCountriesFile, CountriesFlagsFile, CountriesCurrenciesFile,
+    ContinentsFile, CountryFlagBaseUrl) ->
+    Files = [
+        CountriesFile,
+        EuCountriesFile,
+        CountriesFlagsFile,
+        CountriesCurrenciesFile,
+        ContinentsFile
+    ],
+    case read_json_files(Files) of
+        {ok, [Countries, EuCountries, CountriesFlags, CountriesCurrencies, Continents]} ->
+            create_ipinfo_struct(
+                AccessToken,
+                BaseUrl,
+                Timeout,
+                CacheTtl,
+                Countries,
+                EuCountries,
+                CountriesFlags,
+                CountriesCurrencies,
+                Continents,
+                CountryFlagBaseUrl
+            );
         {error, Reason} ->
             {error, Reason}
     end.
+
+read_json_files(Files) ->
+    read_json_files(Files, []).
+
+read_json_files([], Acc) ->
+    {ok, lists:reverse(Acc)};
+read_json_files([File | Rest], Acc) ->
+    case read_json(File) of
+        {ok, Data} ->
+            read_json_files(Rest, [Data | Acc]);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+create_ipinfo_struct(AccessToken, BaseUrl, Timeout, CacheTtl, Countries,
+    EuCountries, CountriesFlags, CountriesCurrencies, Continents,
+    CountryFlagBaseUrl) ->
+    {ok, Cache} = ipinfo_cache:create(CacheTtl),
+    {ok, new(#{
+        access_token          => AccessToken,
+        base_url              => BaseUrl,
+        timeout               => Timeout,
+        cache                 => Cache,
+        countries             => Countries,
+        eu_countries          => EuCountries,
+        countries_flags       => CountriesFlags,
+        country_flag_base_url => CountryFlagBaseUrl,
+        countries_currencies  => CountriesCurrencies,
+        continents            => Continents
+    })}.
 
 details(IpInfo) ->
     details(IpInfo, nil).
@@ -151,18 +176,41 @@ details(#{cache := Cache,
     countries_currencies := CountriesCurrencies,
     continents := Continents
 } = IpInfo, IpAddress) ->
+    case get_details(Cache, IpInfo, IpAddress) of
+        {ok, Details} ->
+            {ok, enrich_details(Details, Countries, EuCountries,
+                CountriesFlags, CountryFlagBaseUrl, CountriesCurrencies,
+                Continents)};
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+get_details(Cache, IpInfo, IpAddress) ->
     case ipinfo_cache:get(Cache, IpAddress) of
         {ok, Details} ->
-            {ok, put_geo(put_country_name(put_is_eu(put_country_flag_url(put_country_flag(put_country_currency(put_continent(Details, Continents),CountriesCurrencies), CountriesFlags),CountryFlagBaseUrl), EuCountries), Countries))};
+            {ok, Details};
         error ->
             case ipinfo_http:request_details(IpInfo, IpAddress) of
                 {ok, Details} ->
                     ok = ipinfo_cache:add(Cache, IpAddress, Details),
-                    {ok, put_geo(put_country_name(put_is_eu(put_country_flag_url(put_country_flag(put_country_currency(put_continent(Details, Continents),CountriesCurrencies), CountriesFlags),CountryFlagBaseUrl), EuCountries), Countries))};
+                    {ok, Details};
                 {error, Reason} ->
                     {error, Reason}
             end
     end.
+
+enrich_details(Details, Countries, EuCountries, CountriesFlags,
+    CountryFlagBaseUrl, CountriesCurrencies, Continents) ->
+    Enrichers = [
+        fun(D) -> put_continent(D, Continents) end,
+        fun(D) -> put_country_currency(D, CountriesCurrencies) end,
+        fun(D) -> put_country_flag(D, CountriesFlags) end,
+        fun(D) -> put_country_flag_url(D, CountryFlagBaseUrl) end,
+        fun(D) -> put_is_eu(D, EuCountries) end,
+        fun(D) -> put_country_name(D, Countries) end,
+        fun put_geo/1
+    ],
+    lists:foldl(fun(F, Acc) -> F(Acc) end, Details, Enrichers).
 
 put_country_name(#{country := Country} = Details, Countries) ->
     case maps:find(Country, Countries) of
@@ -185,7 +233,8 @@ put_country_flag(Details, _CountriesFlags) ->
     Details.
 
 put_country_flag_url(#{country := Country} = Details, CountryFlagBaseUrl) ->
-    CountryFlagUrl = filename:join(CountryFlagBaseUrl, binary_to_list(Country) ++ ".svg"),
+    CountryFlagUrl = filename:join(CountryFlagBaseUrl,
+        binary_to_list(Country) ++ ".svg"),
     maps:put(country_flag_url, CountryFlagUrl, Details);
 put_country_flag_url(Details, _CountryFlagBaseUrl) ->
     Details.
@@ -230,7 +279,8 @@ put_geo(Details) ->
     Details.
 
 get_config(Key, Settings, Default) ->
-    proplists:get_value(Key, Settings, application:get_env(ipinfo, Key, Default)).
+    proplists:get_value(Key, Settings,
+        application:get_env(ipinfo, Key, Default)).
 
 read_json(JsonFile) ->
     case file:read_file(JsonFile) of
