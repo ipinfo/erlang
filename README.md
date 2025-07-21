@@ -19,7 +19,7 @@ You'll need an IPinfo API access token, which you can get by signing up for a fr
 
 The free plan is limited to 50,000 requests per month, and doesn't include some of the data fields such as IP type and company data. To enable all the data fields and additional request volumes see [https://ipinfo.io/pricing](https://ipinfo.io/pricing).
 
-⚠️ Note: This library does not currently support our newest free API https://ipinfo.io/lite. If you’d like to use IPinfo Lite, you can call the [endpoint directly](https://ipinfo.io/developers/lite-api) using your preferred HTTP client. Developers are also welcome to contribute support for Lite by submitting a pull request.
+The library also supports the Lite API, see the [Lite API section](#lite-api) for more info.
 
 ## Installation
 
@@ -60,7 +60,7 @@ Add this line to your application's `rebar.config`:
                 #{<<"code">> => <<"AF">>,<<"name">> => <<"Africa">>},
             <<"ID">> =>
                 #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
-            <<"QA">> => 
+            <<"QA">> =>
                 #{<<"code">> => <<"AS">>,<<"name">> => <<"Asia">>},
             <<"LC">> =>
                 #{<<"code">> => <<"NA">>,<<"name">> => <<"North America">>},
@@ -166,7 +166,7 @@ Add this line to your application's `rebar.config`:
                   <<"unicode">> => <<"U+1F1F5 U+1F1EB">>},
             <<"CV">> =>
                 #{<<"emoji">> => <<240,159,135,168,240,159,135,187>>,
-                  <<"unicode">> => <<"U+1F1E8 U+1F1FB">>}, 
+                  <<"unicode">> => <<"U+1F1E8 U+1F1FB">>},
             <<"CG">> =>
                 #{<<"emoji">> => <<240,159,135,168,240,159,135,172>>,
                   <<"unicode">> => <<"U+1F1E8 U+1F1EC">>},
@@ -240,7 +240,7 @@ Add this line to your application's `rebar.config`:
                 #{<<"emoji">> => <<240,159,135,191,240,159,135,178>>,
                   <<"unicode">> => <<"U+1F1FF U+1F1F2">>},...},
       country_flag_base_url =>
-          <<"https://cdn.ipinfo.io/static/images/countries-flags/">>, 
+          <<"https://cdn.ipinfo.io/static/images/countries-flags/">>,
       eu_countries =>
           [<<"IE">>,<<"AT">>,<<"LT">>,<<"LU">>,<<"LV">>,<<"DE">>,
            <<"DK">>,<<"SE">>,<<"SI">>,<<"SK">>,<<"CZ">>,<<"CY">>,
@@ -313,6 +313,23 @@ def current_ip() do
     |> :inet_parse.address()
   end
 end
+```
+
+## Lite API
+
+The library gives the possibility to use the [Lite API](https://ipinfo.io/developers/lite-api) too, authentication with your token is still required.
+
+The returned details are slightly different from the Core API.
+
+```erlang
+Token = <<"TOKEN">>.
+{ok, IpInfoLite} = ipinfo_lite:create(Token).
+{ok, #{
+    <<"country_code">> := CountryCode,
+    <<"country">> := Country
+} } = ipinfo_lite:details(IpInfoLite, <<"8.8.8.8">>).
+io:format(CountryCode). %% US
+io:format(Country). %% United States
 ```
 
 ## Other Libraries

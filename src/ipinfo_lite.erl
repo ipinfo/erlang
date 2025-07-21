@@ -1,4 +1,4 @@
--module(ipinfo).
+-module(ipinfo_lite).
 -include_lib("kernel/include/logger.hrl").
 
 -export([
@@ -20,43 +20,40 @@
 -define(DEFAULT_COUNTRY_CURRENCY_FILE, "currency.json").
 -define(DEFAULT_CONTINENT_FILE, "continent.json").
 -define(DEFAULT_COUNTRY_FLAG_BASE_URL,
-    <<"https://cdn.ipinfo.io/static/images/countries-flags/">>).
--define(DEFAULT_BASE_URL, <<"https://ipinfo.io">>).
+        <<"https://cdn.ipinfo.io/static/images/countries-flags/">>).
+-define(DEFAULT_BASE_URL, <<"https://api.ipinfo.io/lite">>).
 -define(DEFAULT_TIMEOUT, timer:seconds(5)).
--define(DEFAULT_CACHE_TTL_SECONDS, (24 * 60 * 60)).
+-define(DEFAULT_CACHE_TTL_SECONDS, 24 * 60 * 60).
 
 -export_type([t/0]).
 
--type t() :: #{
-    '__struct__'          := ?MODULE,
-    access_token          := nil | binary(),
-    base_url              := nil | binary(),
-    timeout               := nil | timeout(),
-    cache                 := nil | pid(),
-    countries             := map(),
-    countries_flags       := map(),
-    country_flag_base_url := nil | binary(),
-    countries_currencies  := map(),
-    continents            := map(),
-    eu_countries          := list()
-}.
+-type t() ::
+    #{'__struct__' := ?MODULE,
+      access_token := nil | binary(),
+      base_url := nil | binary(),
+      timeout := nil | timeout(),
+      cache := nil | pid(),
+      countries := map(),
+      countries_flags := map(),
+      country_flag_base_url := nil | binary(),
+      countries_currencies := map(),
+      continents := map(),
+      eu_countries := list()}.
 
 -spec new() -> t().
 %% @private
 new() ->
-    #{
-        '__struct__'          => ?MODULE,
-        access_token          => nil,
-        base_url              => nil,
-        timeout               => nil,
-        cache                 => nil,
-        countries             => #{},
-        countries_currencies  => #{},
-        countries_flags       => #{},
-        country_flag_base_url => nil,
-        continents            => #{},
-        eu_countries          => []
-    }.
+    #{'__struct__' => ?MODULE,
+      access_token => nil,
+      base_url => nil,
+      timeout => nil,
+      cache => nil,
+      countries => #{},
+      countries_currencies => #{},
+      countries_flags => #{},
+      country_flag_base_url => nil,
+      continents => #{},
+      eu_countries => []}.
 
 -spec '__struct__'() -> t().
 %% @private
@@ -119,7 +116,7 @@ create_with_files(AccessToken, BaseUrl, Timeout, CacheTtl, CountriesFile,
     ],
     case read_json_files(Files) of
         {ok, [Countries, EuCountries, CountriesFlags, CountriesCurrencies, Continents]} ->
-            create_ipinfo_struct(
+            create_ipinfo_lite_struct(
                 AccessToken,
                 BaseUrl,
                 Timeout,
@@ -148,7 +145,7 @@ read_json_files([File | Rest], Acc) ->
             {error, Reason}
     end.
 
-create_ipinfo_struct(AccessToken, BaseUrl, Timeout, CacheTtl, Countries,
+create_ipinfo_lite_struct(AccessToken, BaseUrl, Timeout, CacheTtl, Countries,
     EuCountries, CountriesFlags, CountriesCurrencies, Continents,
     CountryFlagBaseUrl) ->
     {ok, Cache} = ipinfo_cache:create(CacheTtl),
@@ -165,8 +162,8 @@ create_ipinfo_struct(AccessToken, BaseUrl, Timeout, CacheTtl, Countries,
         continents            => Continents
     })}.
 
-details(IpInfo) ->
-    details(IpInfo, nil).
+details(IpInfoLite) ->
+    details(IpInfoLite, nil).
 
 details(#{cache := Cache,
     countries := Countries,
@@ -176,7 +173,11 @@ details(#{cache := Cache,
     countries_currencies := CountriesCurrencies,
     continents := Continents
 } = IpInfo, IpAddress) ->
-    case get_details(Cache, IpInfo, IpAddress) of
+    ActualIpAddress = case IpAddress of
+        nil -> <<"me">>;
+        _ -> IpAddress
+    end,
+    case get_details(Cache, IpInfo, ActualIpAddress) of
         {ok, Details} ->
             {ok, enrich_details(Details, Countries, EuCountries,
                 CountriesFlags, CountryFlagBaseUrl, CountriesCurrencies,
@@ -207,13 +208,12 @@ enrich_details(Details, Countries, EuCountries, CountriesFlags,
         fun(D) -> put_country_flag(D, CountriesFlags) end,
         fun(D) -> put_country_flag_url(D, CountryFlagBaseUrl) end,
         fun(D) -> put_is_eu(D, EuCountries) end,
-        fun(D) -> put_country_name(D, Countries) end,
-        fun put_geo/1
+        fun(D) -> put_country_name(D, Countries) end
     ],
     lists:foldl(fun(F, Acc) -> F(Acc) end, Details, Enrichers).
 
-put_country_name(#{country := Country} = Details, Countries) ->
-    case maps:find(Country, Countries) of
+put_country_name(#{country := CountryCode} = Details, Countries) ->
+    case maps:find(CountryCode, Countries) of
         {ok, CountryName} ->
             maps:put(country_name, CountryName, Details);
         error ->
@@ -222,8 +222,8 @@ put_country_name(#{country := Country} = Details, Countries) ->
 put_country_name(Details, _Countries) ->
     Details.
 
-put_country_flag(#{country := Country} = Details, CountriesFlags) ->
-    case maps:find(Country, CountriesFlags) of
+put_country_flag(#{country := CountryCode} = Details, CountriesFlags) ->
+    case maps:find(CountryCode, CountriesFlags) of
         {ok, CountryFlag} ->
             maps:put(country_flag, CountryFlag, Details);
         error ->
@@ -232,15 +232,14 @@ put_country_flag(#{country := Country} = Details, CountriesFlags) ->
 put_country_flag(Details, _CountriesFlags) ->
     Details.
 
-put_country_flag_url(#{country := Country} = Details, CountryFlagBaseUrl) ->
-    CountryFlagUrl = filename:join(CountryFlagBaseUrl,
-        binary_to_list(Country) ++ ".svg"),
+put_country_flag_url(#{country := CountryCode} = Details, CountryFlagBaseUrl) ->
+    CountryFlagUrl = filename:join(CountryFlagBaseUrl, binary_to_list(CountryCode) ++ ".svg"),
     maps:put(country_flag_url, CountryFlagUrl, Details);
 put_country_flag_url(Details, _CountryFlagBaseUrl) ->
     Details.
 
-put_country_currency(#{country := Country} = Details, CountriesCurrencies) ->
-    case maps:find(Country, CountriesCurrencies) of
+put_country_currency(#{country := CountryCode} = Details, CountriesCurrencies) ->
+    case maps:find(CountryCode, CountriesCurrencies) of
         {ok, CountryCurrency} ->
             maps:put(country_currency, CountryCurrency, Details);
         error ->
@@ -249,18 +248,8 @@ put_country_currency(#{country := Country} = Details, CountriesCurrencies) ->
 put_country_currency(Details, _CountriesCurrencies) ->
     Details.
 
-put_continent(#{country := Country} = Details, Continents) ->
-    case maps:find(Country, Continents) of
-        {ok, Continent} ->
-            maps:put(continent, Continent, Details);
-        error ->
-            Details
-    end;
-put_continent(Details, _Continents) ->
-    Details.
-
-put_is_eu(#{country := Country} = Details, EuCountries) ->
-    case lists:member(Country, EuCountries) of
+put_is_eu(#{country := CountryCode} = Details, EuCountries) ->
+    case lists:member(CountryCode, EuCountries) of
         true ->
             maps:put(is_eu, true, Details);
         false ->
@@ -269,18 +258,18 @@ put_is_eu(#{country := Country} = Details, EuCountries) ->
 put_is_eu(Details, _EuCountries) ->
     Details.
 
-put_geo(#{loc := Loc} = Details) ->
-    [Lat, Lon] = string:split(Loc, <<",">>),
-    maps:merge(Details, #{
-        latitude => Lat,
-        longitude => Lon
-    });
-put_geo(Details) ->
+put_continent(#{country := CountryCode} = Details, Continents) ->
+    case maps:find(CountryCode, Continents) of
+        {ok, Continent} ->
+            maps:put(continent, Continent, Details);
+        error ->
+            Details
+    end;
+put_continent(Details, _Continents) ->
     Details.
 
 get_config(Key, Settings, Default) ->
-    proplists:get_value(Key, Settings,
-        application:get_env(ipinfo, Key, Default)).
+    proplists:get_value(Key, Settings, application:get_env(ipinfo, Key, Default)).
 
 read_json(JsonFile) ->
     case file:read_file(JsonFile) of
