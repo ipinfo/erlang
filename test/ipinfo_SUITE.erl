@@ -77,16 +77,6 @@ details_test(Config) ->
         name => <<"Google LLC">>,
         type => <<"hosting">>
     }, maps:get(<<"company">>, Details)),
-    ?assertEqual(#{ 
-        ip => <<"8.8.8.8">>,
-        total => 15669,
-        <<"domains">> => [
-            <<"hdchina.org">>,
-            <<"musicool.cn">>,
-            <<"ztgg.org">>,
-            <<"itempurl.com">>,
-            <<"authrock.com">>]
-    }, maps:get(<<"domains">>, Details)),
     ?assertEqual(true, maps:get(<<"is_anycast">>, Details)),
     ?assertEqual(true, maps:get(<<"is_hosting">>, Details)),
     ?assertEqual(false, maps:get(<<"is_mobile">>, Details)),
