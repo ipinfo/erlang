@@ -69,9 +69,9 @@ details_test(Config) ->
         domain => <<"google.com">>,
         name => <<"Google LLC">>,
         type => <<"hosting">>,
-        <<"asn">> => <<"AS15169">>,
-        <<"route">> => <<"8.8.8.0/24">>
-    }, maps:get(<<"asn">>, Details)),
+        asn => <<"AS15169">>,
+        route => <<"8.8.8.0/24">>
+    }, maps:get(asn, Details)),
     Company = maps:get(<<"company">>, Details),
     ?assertEqual(<<"google.com">>, maps:get(domain, Company)),
     ?assertEqual(<<"Google LLC">>, maps:get(name, Company)),
