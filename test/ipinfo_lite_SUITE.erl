@@ -39,57 +39,44 @@ end_per_suite(_Config) ->
 details_ip_v4_test(Config) ->
     Token = proplists:get_value(token, Config),
     {ok, IpInfoLite} = ipinfo_lite:create(Token),
-    {ok, #{
-        ip := <<"8.8.8.8">>,
-        is_eu := false,
-        country_flag_url := <<"https:/cdn.ipinfo.io/static/images/countries-flags/United States.svg">>,
-        country := <<"United States">>,
-        continent := <<"North America">>,
-        <<"as_domain">> := <<"google.com">>,
-        <<"as_name">> := <<"Google LLC">>,
-        <<"asn">> := <<"AS15169">>,
-        <<"continent_code">> := <<"NA">>,
-        <<"country_code">> := <<"US">>}
-    } = ipinfo_lite:details(IpInfoLite, <<"8.8.8.8">>).
+    {ok, Details} = ipinfo_lite:details(IpInfoLite, <<"8.8.8.8">>),
+    ?assertEqual(<<"8.8.8.8">>, maps:get(ip, Details)),
+    ?assertEqual(<<"US">>, maps:get(country_code, Details)),
+    ?assertEqual(<<"United States">>, maps:get(country, Details)),
+    ?assertEqual(false, maps:get(is_eu, Details)),
+    ?assertEqual(<<"https://cdn.ipinfo.io/static/images/countries-flags/US.svg">>, maps:get(country_flag_url, Details)),
+    ?assertEqual(<<"North America">>, maps:get(continent, Details)),
+    ?assertEqual(<<"NA">>, maps:get(continent_code, Details)),
+    ?assertEqual(<<"AS15169">>, maps:get(asn, Details)),
+    ?assertEqual(<<"google.com">>, maps:get(<<"as_domain">>, Details)),
+    ?assertEqual(<<"Google LLC">>, maps:get(<<"as_name">>, Details)).
 
 details_ip_v6_test(Config) ->
     Token = proplists:get_value(token, Config),
     {ok, IpInfoLite} = ipinfo_lite:create(Token),
-    {ok, #{
-        ip := <<"2001:4860:4860::8888">>,
-        is_eu := false,
-        country_flag_url := <<"https:/cdn.ipinfo.io/static/images/countries-flags/United States.svg">>,
-        country := <<"United States">>,
-        continent := <<"North America">>,
-        <<"as_domain">> := <<"google.com">>,
-        <<"as_name">> := <<"Google LLC">>,
-        <<"asn">> := <<"AS15169">>,
-        <<"continent_code">> := <<"NA">>,
-        <<"country_code">> := <<"US">>}
-    } = ipinfo_lite:details(IpInfoLite, <<"2001:4860:4860::8888">>).
+    {ok, Details} = ipinfo_lite:details(IpInfoLite, <<"2001:4860:4860::8888">>),
+    ?assertEqual(<<"2001:4860:4860::8888">>, maps:get(ip, Details)),
+    ?assertEqual(<<"US">>, maps:get(country_code, Details)),
+    ?assertEqual(<<"United States">>, maps:get(country, Details)),
+    ?assertEqual(false, maps:get(is_eu, Details)),
+    ?assertEqual(<<"https://cdn.ipinfo.io/static/images/countries-flags/US.svg">>, maps:get(country_flag_url, Details)),
+    ?assertEqual(<<"North America">>, maps:get(continent, Details)),
+    ?assertEqual(<<"NA">>, maps:get(continent_code, Details)),
+    ?assertEqual(<<"AS15169">>, maps:get(asn, Details)),
+    ?assertEqual(<<"google.com">>, maps:get(<<"as_domain">>, Details)),
+    ?assertEqual(<<"Google LLC">>, maps:get(<<"as_name">>, Details)).
 
 details_current_ip_test(Config) ->
     Token = proplists:get_value(token, Config),
     {ok, IpInfoLite} = ipinfo_lite:create(Token),
-    {ok, #{
-        ip := Ip,
-        is_eu := IsEu,
-        country_flag_url := CountryFlagUrl,
-        country := Country,
-        continent := Continent,
-        <<"as_domain">> := AsDomain,
-        <<"as_name">> := AsName,
-        <<"asn">> := Asn,
-        <<"continent_code">> := ContinentCode,
-        <<"country_code">> := CountryCode}
-    } = ipinfo_lite:details(IpInfoLite),
-    ?assertNotEqual(nil, Ip),
-    ?assertNotEqual(nil, IsEu),
-    ?assertNotEqual(nil, CountryFlagUrl),
-    ?assertNotEqual(nil, Country),
-    ?assertNotEqual(nil, Continent),
-    ?assertNotEqual(nil, AsDomain),
-    ?assertNotEqual(nil, AsName),
-    ?assertNotEqual(nil, Asn),
-    ?assertNotEqual(nil, ContinentCode),
-    ?assertNotEqual(nil, CountryCode).
+    {ok, Details} = ipinfo_lite:details(IpInfoLite),
+    ?assertNotEqual(nil, maps:get(ip, Details)),
+    ?assertNotEqual(nil, maps:get(is_eu, Details)),
+    ?assertNotEqual(nil, maps:get(country_flag_url, Details)),
+    ?assertNotEqual(nil, maps:get(country, Details)),
+    ?assertNotEqual(nil, maps:get(continent, Details)),
+    ?assertNotEqual(nil, maps:get(<<"as_domain">>, Details)),
+    ?assertNotEqual(nil, maps:get(<<"as_name">>, Details)),
+    ?assertNotEqual(nil, maps:get(asn, Details)),
+    ?assertNotEqual(nil, maps:get(continent_code, Details)),
+    ?assertNotEqual(nil, maps:get(country_code, Details)).

@@ -212,17 +212,17 @@ enrich_details(Details, Countries, EuCountries, CountriesFlags,
     ],
     lists:foldl(fun(F, Acc) -> F(Acc) end, Details, Enrichers).
 
-put_country_name(#{country := CountryCode} = Details, Countries) ->
+put_country_name(#{country_code := CountryCode} = Details, Countries) ->
     case maps:find(CountryCode, Countries) of
         {ok, CountryName} ->
-            maps:put(country_name, CountryName, Details);
+            maps:put(country, CountryName, Details);
         error ->
             Details
     end;
 put_country_name(Details, _Countries) ->
     Details.
 
-put_country_flag(#{country := CountryCode} = Details, CountriesFlags) ->
+put_country_flag(#{country_code := CountryCode} = Details, CountriesFlags) ->
     case maps:find(CountryCode, CountriesFlags) of
         {ok, CountryFlag} ->
             maps:put(country_flag, CountryFlag, Details);
@@ -232,13 +232,13 @@ put_country_flag(#{country := CountryCode} = Details, CountriesFlags) ->
 put_country_flag(Details, _CountriesFlags) ->
     Details.
 
-put_country_flag_url(#{country := CountryCode} = Details, CountryFlagBaseUrl) ->
-    CountryFlagUrl = filename:join(CountryFlagBaseUrl, binary_to_list(CountryCode) ++ ".svg"),
+put_country_flag_url(#{country_code := CountryCode} = Details, CountryFlagBaseUrl) ->
+    CountryFlagUrl = <<CountryFlagBaseUrl/binary, CountryCode/binary, ".svg">>,
     maps:put(country_flag_url, CountryFlagUrl, Details);
 put_country_flag_url(Details, _CountryFlagBaseUrl) ->
     Details.
 
-put_country_currency(#{country := CountryCode} = Details, CountriesCurrencies) ->
+put_country_currency(#{country_code := CountryCode} = Details, CountriesCurrencies) ->
     case maps:find(CountryCode, CountriesCurrencies) of
         {ok, CountryCurrency} ->
             maps:put(country_currency, CountryCurrency, Details);
@@ -248,7 +248,7 @@ put_country_currency(#{country := CountryCode} = Details, CountriesCurrencies) -
 put_country_currency(Details, _CountriesCurrencies) ->
     Details.
 
-put_is_eu(#{country := CountryCode} = Details, EuCountries) ->
+put_is_eu(#{country_code := CountryCode} = Details, EuCountries) ->
     case lists:member(CountryCode, EuCountries) of
         true ->
             maps:put(is_eu, true, Details);
@@ -258,11 +258,13 @@ put_is_eu(#{country := CountryCode} = Details, EuCountries) ->
 put_is_eu(Details, _EuCountries) ->
     Details.
 
-put_continent(#{country := CountryCode} = Details, Continents) ->
+put_continent(#{country_code := CountryCode} = Details, Continents) ->
     case maps:find(CountryCode, Continents) of
-        {ok, Continent} ->
+        {ok, #{<<"name">> := ContinentName}} ->
+            maps:put(continent, ContinentName, Details);
+        {ok, Continent} when is_binary(Continent) ->
             maps:put(continent, Continent, Details);
-        error ->
+        _ ->
             Details
     end;
 put_continent(Details, _Continents) ->
