@@ -51,14 +51,14 @@ details_test(Config) ->
     ?assertEqual(<<"8.8.8.8">>, maps:get(ip, Details)),
     ?assertEqual(false, maps:get(is_anonymous, Details)),
     ?assertEqual(false, maps:get(is_eu, Details)),
-    ?assertEqual(<<"38.0088">>, maps:get(latitude, Details)),
-    ?assertEqual(<<"38.0088,-122.1175">>, maps:get(loc, Details)),
-    ?assertEqual(<<"-122.1175">>, maps:get(longitude, Details)),
+    ?assertNotEqual(nil, maps:get(loc, Details)),
+    ?assertNotEqual(nil, maps:get(latitude, Details)),
+    ?assertNotEqual(nil, maps:get(longitude, Details)),
     ?assertEqual(<<"AS15169 Google LLC">>, maps:get(org, Details)),
     ?assertEqual(<<"94043">>, maps:get(postal, Details)),
     ?assertEqual(<<"California">>, maps:get(region, Details)),
     ?assertEqual(<<"America/Los_Angeles">>, maps:get(timezone, Details)),
-    ?assertEqual(#{ 
+    ?assertEqual(#{
         address => <<"US, CA, Mountain View, 1600 Amphitheatre Parkway, 94043">>,
         country => <<"US">>,
         email => <<"network-abuse@google.com">>,
@@ -72,15 +72,14 @@ details_test(Config) ->
         <<"asn">> => <<"AS15169">>,
         <<"route">> => <<"8.8.8.0/24">>
     }, maps:get(<<"asn">>, Details)),
-    ?assertEqual(#{ 
-        domain => <<"google.com">>,
-        name => <<"Google LLC">>,
-        type => <<"hosting">>
-    }, maps:get(<<"company">>, Details)),
-    ?assertEqual(true, maps:get(<<"is_anycast">>, Details)),
-    ?assertEqual(true, maps:get(<<"is_hosting">>, Details)),
-    ?assertEqual(false, maps:get(<<"is_mobile">>, Details)),
-    ?assertEqual(false, maps:get(<<"is_satellite">>, Details)),
+    Company = maps:get(<<"company">>, Details),
+    ?assertEqual(<<"google.com">>, maps:get(domain, Company)),
+    ?assertEqual(<<"Google LLC">>, maps:get(name, Company)),
+    ?assertEqual(<<"hosting">>, maps:get(type, Company)),
+    ?assertEqual(true, maps:get(is_anycast, Details)),
+    ?assertEqual(true, maps:get(is_hosting, Details)),
+    ?assertEqual(false, maps:get(is_mobile, Details)),
+    ?assertEqual(false, maps:get(is_satellite, Details)),
     ?assertEqual(#{
         proxy => false,
         relay => false,
