@@ -11,7 +11,8 @@
     create/1,
     create/2,
     details/1,
-    details/2
+    details/2,
+    resproxy/2
 ]).
 
 -define(DEFAULT_COUNTRY_FILE, "countries.json").
@@ -183,6 +184,22 @@ details(#{cache := Cache,
                 Continents)};
         {error, Reason} ->
             {error, Reason}
+    end.
+
+-spec resproxy(t(), binary()) -> {ok, map()} | {error, term()}.
+resproxy(#{cache := Cache} = IpInfo, IpAddress) ->
+    CacheKey = <<"resproxy:", IpAddress/binary>>,
+    case ipinfo_cache:get(Cache, CacheKey) of
+        {ok, Details} ->
+            {ok, Details};
+        error ->
+            case ipinfo_http:request_resproxy(IpInfo, IpAddress) of
+                {ok, Details} ->
+                    ok = ipinfo_cache:add(Cache, CacheKey, Details),
+                    {ok, Details};
+                {error, Reason} ->
+                    {error, Reason}
+            end
     end.
 
 get_details(Cache, IpInfo, IpAddress) ->

@@ -1,7 +1,7 @@
 -module(ipinfo_http).
 -include_lib("kernel/include/logger.hrl").
 
--export([request_details/2]).
+-export([request_details/2, request_resproxy/2]).
 
 -define(RATE_LIMIT_MESSAGE, <<
     "To increase your limits, please review our ",
@@ -9,10 +9,19 @@
 >>).
 
 -spec request_details(ipinfo:t(), binary()) -> {ok, map()} | {error, term()}.
-request_details(#{access_token := AccessToken, base_url := BaseUrl, timeout := Timeout}, Ip) ->
-    Url = binary_to_list(build_url(BaseUrl, Ip)),
+request_details(#{base_url := BaseUrl} = Config, Ip) ->
+    Url = build_url(BaseUrl, Ip),
+    do_request(Config, Url).
+
+-spec request_resproxy(ipinfo:t(), binary()) -> {ok, map()} | {error, term()}.
+request_resproxy(#{base_url := BaseUrl} = Config, Ip) ->
+    Url = build_resproxy_url(BaseUrl, Ip),
+    do_request(Config, Url).
+
+-spec do_request(ipinfo:t(), binary()) -> {ok, map()} | {error, term()}.
+do_request(#{access_token := AccessToken, timeout := Timeout}, Url) ->
     ReqHeaders = build_req_headers(AccessToken),
-    Request = {Url, ReqHeaders},
+    Request = {binary_to_list(Url), ReqHeaders},
     HTTPOptions = [
         {timeout, Timeout}
     ],
@@ -39,6 +48,10 @@ build_url(BaseUrl, Ip) when Ip =:= nil orelse Ip =:= undefined ->
     BaseUrl;
 build_url(BaseUrl, Ip) when is_binary(BaseUrl) andalso is_binary(Ip) ->
     <<BaseUrl/binary, "/", Ip/binary>>.
+
+-spec build_resproxy_url(binary(), binary()) -> binary().
+build_resproxy_url(BaseUrl, Ip) when is_binary(BaseUrl) andalso is_binary(Ip) ->
+    <<BaseUrl/binary, "/resproxy/", Ip/binary>>.
 
 build_req_headers(nil) ->
     base_req_headers();
