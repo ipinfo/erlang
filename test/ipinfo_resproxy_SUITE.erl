@@ -6,7 +6,9 @@
 -export([
     all/0,
     init_per_suite/1,
-    end_per_suite/1
+    end_per_suite/1,
+    init_per_testcase/2,
+    end_per_testcase/2
 ]).
 
 -export([
@@ -19,26 +21,46 @@ all() ->
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(ipinfo),
-    Token = case os:getenv("IPINFO_TOKEN") of
-        false -> nil;
-        TokenStr -> list_to_binary(TokenStr)
-    end,
-    [{token, Token} | Config].
+    {ok, _} = application:ensure_all_started(bookish_spork),
+    Config.
 
 end_per_suite(_Config) ->
-    ok = application:stop(ipinfo).
+    ok = application:stop(ipinfo),
+    ok = application:stop(bookish_spork).
 
-resproxy_test(Config) ->
-    Token = proplists:get_value(token, Config),
-    {ok, IpInfo} = ipinfo:create(Token),
+init_per_testcase(_TestCase, Config) ->
+    {ok, _} = bookish_spork:start_server(),
+    Config.
+
+end_per_testcase(_TestCase, _Config) ->
+    ok = bookish_spork:stop_server().
+
+resproxy_test(_Config) ->
+    % Mock response for resproxy
+    MockBody = jsx:encode(#{
+        <<"ip">> => <<"175.107.211.204">>,
+        <<"last_seen">> => <<"2025-01-20">>,
+        <<"percent_days_seen">> => 0.85,
+        <<"service">> => <<"example_service">>
+    }),
+    bookish_spork:stub_request([200, #{}, MockBody]),
+
+    % Create IPinfo client pointing to mock server (default bookish_spork port is 32002)
+    {ok, IpInfo} = ipinfo:create(<<"test_token">>, [{base_url, <<"http://127.0.0.1:32002">>}]),
     {ok, Resproxy} = ipinfo:resproxy(IpInfo, <<"175.107.211.204">>),
-    ?assertEqual(<<"175.107.211.204">>, maps:get(ip, Resproxy)),
-    ?assertNotEqual(undefined, maps:get(last_seen, Resproxy)),
-    ?assertNotEqual(undefined, maps:get(percent_days_seen, Resproxy)),
-    ?assertNotEqual(undefined, maps:get(service, Resproxy)).
 
-resproxy_empty_test(Config) ->
-    Token = proplists:get_value(token, Config),
-    {ok, IpInfo} = ipinfo:create(Token),
+    ?assertEqual(<<"175.107.211.204">>, maps:get(ip, Resproxy)),
+    ?assertEqual(<<"2025-01-20">>, maps:get(last_seen, Resproxy)),
+    ?assertEqual(0.85, maps:get(percent_days_seen, Resproxy)),
+    ?assertEqual(<<"example_service">>, maps:get(service, Resproxy)).
+
+resproxy_empty_test(_Config) ->
+    % Mock empty response for resproxy
+    MockBody = jsx:encode(#{}),
+    bookish_spork:stub_request([200, #{}, MockBody]),
+
+    % Create IPinfo client pointing to mock server (default bookish_spork port is 32002)
+    {ok, IpInfo} = ipinfo:create(<<"test_token">>, [{base_url, <<"http://127.0.0.1:32002">>}]),
     {ok, Resproxy} = ipinfo:resproxy(IpInfo, <<"8.8.8.8">>),
+
     ?assertEqual(#{}, Resproxy).
