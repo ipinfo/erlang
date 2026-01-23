@@ -332,6 +332,66 @@ io:format(CountryCode). %% US
 io:format(Country). %% United States
 ```
 
+## Core API
+
+The library also supports the [Core API](https://ipinfo.io/developers/data-types#core-data), which provides city-level geolocation with nested geo and AS objects. Authentication with your token is required.
+
+```erlang
+Token = <<"TOKEN">>.
+{ok, IpInfoCore} = ipinfo_core:create(Token).
+{ok, #{
+    <<"ip">> := IP,
+    <<"geo">> := #{
+        <<"city">> := City,
+        <<"country">> := Country
+    },
+    <<"as">> := #{
+        <<"asn">> := ASN,
+        <<"name">> := ASName
+    }
+} } = ipinfo_core:details(IpInfoCore, <<"8.8.8.8">>).
+io:format(IP). %% 8.8.8.8
+io:format(City). %% Mountain View
+io:format(ASN). %% AS15169
+```
+
+## Plus API
+
+The library also supports the [Plus API](https://ipinfo.io/developers/data-types#plus-data), which provides enhanced data including mobile carrier info and privacy detection. Authentication with your token is required.
+
+```erlang
+Token = <<"TOKEN">>.
+{ok, IpInfoPlus} = ipinfo_plus:create(Token).
+{ok, #{
+    <<"ip">> := IP,
+    <<"geo">> := #{
+        <<"city">> := City
+    },
+    <<"mobile">> := Mobile,
+    <<"anonymous">> := Anonymous
+} } = ipinfo_plus:details(IpInfoPlus, <<"8.8.8.8">>).
+io:format(IP). %% 8.8.8.8
+io:format(City). %% Mountain View
+```
+
+## Residential Proxy API
+
+The library also supports the [Residential Proxy API](https://ipinfo.io/developers/residential-proxy-api), which allows you to check if an IP address is a residential proxy. Authentication with your token is required.
+
+```erlang
+Token = <<"TOKEN">>.
+{ok, IpInfo} = ipinfo:create(Token).
+{ok, #{
+    <<"ip">> := IP,
+    <<"last_seen">> := LastSeen,
+    <<"percent_days_seen">> := PercentDaysSeen,
+    <<"service">> := Service
+} } = ipinfo:get_resproxy(IpInfo, <<"175.107.211.204">>).
+io:format(IP). %% 175.107.211.204
+io:format(LastSeen). %% 2025-01-20
+io:format(Service). %% Bright Data
+```
+
 ## Other Libraries
 
 There are official [IPinfo client libraries](https://ipinfo.io/developers/libraries) available for many languages including PHP, Go, Java, Ruby, and many popular frameworks such as Django, Rails, and Laravel. There are also many third-party libraries and integrations available for our API.
